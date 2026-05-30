@@ -1,0 +1,41 @@
+{
+  "name": "codex-background-lite",
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Small standalone Codex Desktop background injector using CDP.",
+  "keywords": [
+    "codex",
+    "codex-desktop",
+    "chrome-devtools-protocol",
+    "electron",
+    "theme",
+    "background"
+  ],
+  "bin": {
+    "codex-background-lite": "./src/cli.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/killosky/codex-background-lite.git"
+  },
+  "bugs": {
+    "url": "https://github.com/killosky/codex-background-lite/issues"
+  },
+  "homepage": "https://github.com/killosky/codex-background-lite#readme",
+  "scripts": {
+    "check": "node --check src/cli.js && node --check src/cdp.js && node --check src/config.js && node --check src/image.js && node --check src/state.js && node --check src/theme-script.js && node --check src/launcher.js && node --check src/ui-server.js && node --check src/ui-page.js && node --test",
+    "dry-run": "node src/cli.js dry-run",
+    "test": "node --test"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "files": [
+    "src",
+    "README.md",
+    "README.en.md",
+    "LICENSE",
+    "SECURITY.md"
+  ],
+  "license": "MIT"
+}
