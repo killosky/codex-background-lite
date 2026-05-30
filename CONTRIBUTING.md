@@ -1,27 +1,39 @@
-# Contributing
+# 贡献指南
 
-Thanks for considering a contribution.
+感谢你考虑参与 `codex-background-lite`。
 
-This project is intentionally small. Please keep changes focused on the standalone background-theme workflow and avoid adding provider, account, proxy, or updater features.
+## 项目边界
 
-## Development
+当前项目只做一件事：通过独立 Windows 桌面应用，把背景图应用到 Codex Desktop。
 
-Requirements:
+请不要在本项目里加入这些方向：
 
-- Node.js 20 or newer
-- Windows for `restart-codex`
+- provider 管理
+- 账号切换
+- 代理配置
+- Codex 更新器
+- 自动开机恢复背景
+- 修改 Codex 安装文件
 
-Useful commands:
+## 开发命令
 
 ```powershell
+npm install
+npm run desktop
 npm run check
-npm test
-node src/cli.js dry-run --image C:\path\to\background.jpg --out .\tmp\inject.js
 ```
 
-## Pull Requests
+打包：
 
-- Keep public-facing behavior documented in both `README.md` and `README.en.md`.
-- Add or update tests for input validation, generated script behavior, and CLI-safe paths.
-- Do not commit generated files from `.tmp/`.
-- Be explicit when a change touches CDP, process launching, or local UI actions.
+```powershell
+npm run pack:win
+npm run dist:win
+```
+
+## 提交要求
+
+- 用户可见文档默认使用中文。
+- 修改 CDP、进程启动、配置保存逻辑时，请同步更新文档。
+- 影响主题脚本生成逻辑时，请补充或更新测试。
+- 不要提交 `node_modules/`、`dist/`、`.tmp/` 等生成产物。
+- 如果改动会中断当前 Codex 进程，界面上必须明确提示用户确认。

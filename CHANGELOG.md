@@ -1,8 +1,12 @@
-# Changelog
+# 变更记录
 
 ## 0.1.0
 
-- Initial standalone extraction of the Codex Desktop background-theme workflow.
-- Added CDP-based apply, clear, status, and dry-run commands.
-- Added a local settings UI.
-- Added Windows MSIX Codex restart support with CDP flags.
+- 新增独立 Windows 桌面应用。
+- 支持选择背景图片并保存到本机配置目录。
+- 支持调整背景遮罩、面板透明度、模糊、适配方式、图片位置和强调色。
+- 支持通过 CDP 将背景应用到当前 Codex Desktop 窗口。
+- 支持清除当前 Codex 背景样式。
+- 支持启动或重启 Windows Store/MSIX 版 Codex，并自动带上 CDP 参数。
+- 移除第一版网页控制台、开机自动恢复和 restore 流程。
+- 保留最小 CLI 作为开发调试辅助入口。

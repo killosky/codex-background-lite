@@ -5,65 +5,62 @@ import { applyBackground, buildDryRunScript, clearBackground, status } from "./c
 import { imageFileToDataUri } from "./image.js";
 import { restartCodexWithCdp } from "./launcher.js";
 import { stateFilePath } from "./state.js";
-import { startUiServer } from "./ui-server.js";
 
 function usage() {
-  return `codex-background-lite
+  return `codex-background-lite 辅助命令
 
-Usage:
+桌面应用是当前唯一推荐使用方式：
+  npm run desktop
+  npm run dist:win
+
+辅助命令：
   node src/cli.js dry-run --image <path> [--out <path>] [theme options]
   node src/cli.js status [--port 9222]
   node src/cli.js restart-codex [--port 9222]
-  node src/cli.js apply --image <path> [--port 9222] [--no-persist] [theme options]
+  node src/cli.js apply --image <path> [--port 9222] [theme options]
   node src/cli.js clear [--port 9222]
-  node src/cli.js ui [--ui-port 17837] [--host 127.0.0.1]
 
-Theme options:
-  --overlay <0..0.9>       Darkness over the image. Default: 0.42
-  --panel-opacity <0..1>   Panel opacity. Default: 0.62
-  --blur <px>              Panel blur. Default: 5
+主题参数：
+  --overlay <0..0.9>       背景遮罩，默认 0.42
+  --panel-opacity <0..1>   面板透明度，默认 0.62
+  --blur <px>              面板模糊，默认 5
   --fit <cover|contain|auto>
-                           Background fit. Default: cover
-  --position <css value>   Background position. Default: "center top"
-  --accent <#rrggbb>       Accent color. Default: #7dd3fc
-  --force-large            Allow images above 12 MB
+                           背景适配方式，默认 cover
+  --position <css value>   背景位置，默认 "center top"
+  --accent <#rrggbb>       强调色，默认 #7dd3fc
+  --force-large            允许超过 12 MB 的图片
 
-Safety:
-  dry-run only writes the generated injection JavaScript to disk/stdout.
-  ui starts a local settings page but does not apply anything by itself.
-  restart-codex changes the running Codex process.
-  status, apply, and clear are the only commands that contact Codex Desktop CDP.`;
+说明：
+  dry-run 只生成注入脚本，不连接 Codex。
+  status、apply、clear 会连接 Codex Desktop CDP。
+  restart-codex 会关闭并重新启动 Codex Desktop。`;
 }
 
 function parseArgs(argv) {
   const command = argv[2];
   const flags = {};
-  const positional = [];
   for (let i = 3; i < argv.length; i += 1) {
     const arg = argv[i];
-    if (!arg.startsWith("--")) {
-      positional.push(arg);
-      continue;
-    }
+    if (!arg.startsWith("--")) continue;
     const key = arg.slice(2);
-    if (key === "no-persist" || key === "force-large" || key === "help") {
+    if (key === "force-large" || key === "help") {
       flags[key] = true;
       continue;
     }
     const next = argv[i + 1];
     if (next === undefined || next.startsWith("--")) {
-      throw new Error(`Missing value for --${key}`);
+      throw new Error(`缺少 --${key} 的参数值`);
     }
     flags[key] = next;
     i += 1;
   }
-  return { command, flags, positional };
+  return { command, flags };
 }
 
 function numberFlag(flags, name, fallback) {
   if (flags[name] === undefined) return fallback;
   const value = Number(flags[name]);
-  if (!Number.isFinite(value)) throw new Error(`--${name} must be a number`);
+  if (!Number.isFinite(value)) throw new Error(`--${name} 必须是数字`);
   return value;
 }
 
@@ -81,25 +78,9 @@ function themeOptionsFromFlags(flags) {
 function portFromFlags(flags) {
   const port = Number(flags.port ?? 9222);
   if (!Number.isInteger(port) || port <= 0 || port > 65535) {
-    throw new Error("--port must be an integer between 1 and 65535");
+    throw new Error("--port 必须是 1 到 65535 之间的整数");
   }
   return port;
-}
-
-function uiPortFromFlags(flags) {
-  const port = Number(flags["ui-port"] ?? 17837);
-  if (!Number.isInteger(port) || port <= 0 || port > 65535) {
-    throw new Error("--ui-port must be an integer between 1 and 65535");
-  }
-  return port;
-}
-
-function hostFromFlags(flags) {
-  const host = String(flags.host ?? "127.0.0.1").trim();
-  if (host !== "127.0.0.1" && host !== "localhost") {
-    throw new Error("--host is limited to 127.0.0.1 or localhost");
-  }
-  return host;
 }
 
 async function writeOutput(path, text) {
@@ -110,34 +91,32 @@ async function writeOutput(path, text) {
 }
 
 async function runDryRun(flags) {
-  if (!flags.image) throw new Error("dry-run requires --image <path>");
+  if (!flags.image) throw new Error("dry-run 需要 --image <path>");
   const image = await imageFileToDataUri(flags.image, { forceLarge: flags["force-large"] === true });
   const script = buildDryRunScript(image.dataUri, themeOptionsFromFlags(flags));
-  if (flags.out) {
-    const absolute = await writeOutput(flags.out, `${script}\n`);
-    console.log(JSON.stringify({
-      ok: true,
-      mode: "dry-run",
-      wrote: absolute,
-      imagePath: image.absolutePath,
-      imageBytes: image.byteLength
-    }, null, 2));
-  } else {
+  if (!flags.out) {
     console.log(script);
+    return;
   }
+  const absolute = await writeOutput(flags.out, `${script}\n`);
+  console.log(JSON.stringify({
+    ok: true,
+    mode: "dry-run",
+    wrote: absolute,
+    imagePath: image.absolutePath,
+    imageBytes: image.byteLength
+  }, null, 2));
 }
 
 async function runStatus(flags) {
-  const result = await status(portFromFlags(flags));
-  console.log(JSON.stringify(result, null, 2));
+  console.log(JSON.stringify(await status(portFromFlags(flags)), null, 2));
 }
 
 async function runApply(flags) {
-  if (!flags.image) throw new Error("apply requires --image <path>");
+  if (!flags.image) throw new Error("apply 需要 --image <path>");
   const result = await applyBackground({
     imagePath: flags.image,
     port: portFromFlags(flags),
-    persist: flags["no-persist"] !== true,
     forceLarge: flags["force-large"] === true,
     themeOptions: themeOptionsFromFlags(flags)
   });
@@ -152,19 +131,6 @@ async function runRestartCodex(flags) {
 async function runClear(flags) {
   const result = await clearBackground({ port: portFromFlags(flags) });
   console.log(JSON.stringify({ ok: true, ...result, stateFile: stateFilePath() }, null, 2));
-}
-
-async function runUi(flags) {
-  const result = await startUiServer({
-    host: hostFromFlags(flags),
-    uiPort: uiPortFromFlags(flags)
-  });
-  console.log(JSON.stringify({
-    ok: true,
-    mode: "ui",
-    url: result.url,
-    safety: "The page does not apply anything until you press Apply Preview, Apply Persistent, or Clear."
-  }, null, 2));
 }
 
 async function main() {
@@ -190,11 +156,8 @@ async function main() {
     case "clear":
       await runClear(flags);
       break;
-    case "ui":
-      await runUi(flags);
-      break;
     default:
-      throw new Error(`Unknown command "${command}".\n\n${usage()}`);
+      throw new Error(`未知命令：${command}\n\n${usage()}`);
   }
 }
 

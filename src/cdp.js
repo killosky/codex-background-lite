@@ -4,7 +4,6 @@ import crypto from "node:crypto";
 import { URL } from "node:url";
 import { buildClearScript, buildInjectScript } from "./theme-script.js";
 import { imageFileToDataUri } from "./image.js";
-import { addRegistration, loadState, saveState } from "./state.js";
 
 function httpJson(url) {
   return new Promise((resolve, reject) => {
@@ -33,8 +32,24 @@ function httpJson(url) {
   });
 }
 
+async function firstSuccessful(urls) {
+  const failures = [];
+  for (const url of urls) {
+    try {
+      return await httpJson(url);
+    } catch (error) {
+      failures.push(`${url}: ${error.message}`);
+    }
+  }
+  throw new Error(failures.join("; "));
+}
+
 export async function listPages(port = 9222) {
-  return httpJson(`http://127.0.0.1:${port}/json/list`);
+  return firstSuccessful([
+    `http://127.0.0.1:${port}/json/list`,
+    `http://localhost:${port}/json/list`,
+    `http://[::1]:${port}/json/list`
+  ]);
 }
 
 export function pickMainPage(pages) {
@@ -73,7 +88,8 @@ class CdpSocket {
     const port = Number(this.url.port || 80);
     const path = `${this.url.pathname}${this.url.search}`;
 
-    this.socket = net.createConnection({ host: this.url.hostname, port });
+    const host = this.url.hostname.replace(/^\[(.*)\]$/, "$1");
+    this.socket = net.createConnection({ host, port });
     await new Promise((resolve, reject) => {
       const onError = (error) => {
         cleanup();
@@ -277,59 +293,25 @@ export async function status(port = 9222) {
   };
 }
 
-export async function applyBackground({ imagePath, port = 9222, themeOptions = {}, persist = true, forceLarge = false }) {
+export async function applyBackground({ imagePath, port = 9222, themeOptions = {}, forceLarge = false }) {
   const image = await imageFileToDataUri(imagePath, { forceLarge });
   const script = buildInjectScript(image.dataUri, themeOptions);
   return withCdpPage(port, async (cdp, page) => {
     await cdp.command("Page.enable");
-    let identifier = null;
-    if (persist) {
-      const result = await cdp.command("Page.addScriptToEvaluateOnNewDocument", { source: script });
-      identifier = result.identifier || null;
-      if (identifier) {
-        await addRegistration(identifier, {
-          pageId: page.id,
-          port,
-          imagePath: image.absolutePath
-        });
-      }
-    }
     await cdp.command("Runtime.evaluate", { expression: script, returnByValue: true });
     return {
       pageId: page.id,
       imagePath: image.absolutePath,
       imageBytes: image.byteLength,
-      persisted: Boolean(identifier),
-      identifier
+      persisted: false,
+      identifier: null
     };
   });
 }
 
 export async function clearBackground({ port = 9222 } = {}) {
-  const state = await loadState();
-  const registrations = state.registrations;
   return withCdpPage(port, async (cdp) => {
     await cdp.command("Page.enable");
-    const removed = [];
-    const failed = [];
-    for (const registration of registrations) {
-      try {
-        await cdp.command("Page.removeScriptToEvaluateOnNewDocument", {
-          identifier: registration.identifier
-        });
-        removed.push(registration.identifier);
-      } catch (error) {
-        failed.push({ identifier: registration.identifier, error: error.message });
-      }
-    }
-    const removedIdentifiers = new Set(removed);
-    const remainingRegistrations = registrations.filter(
-      (registration) => !removedIdentifiers.has(registration.identifier)
-    );
-    if (registrations.length > 0 || state.lastImage) {
-      await saveState({ ...state, registrations: remainingRegistrations });
-    }
-
     let currentStyleCleared = false;
     let currentStyleClearError = null;
     try {
@@ -342,9 +324,6 @@ export async function clearBackground({ port = 9222 } = {}) {
       currentStyleClearError = error.message;
     }
     return {
-      removed,
-      failed,
-      remainingRegistrations: remainingRegistrations.length,
       currentStyleCleared,
       currentStyleClearError
     };
