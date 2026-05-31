@@ -2,6 +2,11 @@
 
 中文版本：[CHANGELOG.md](CHANGELOG.md)
 
+## 0.1.2
+
+- Integrated Apply to Codex into the setup workflow: save settings, check the CDP connection, confirm a Codex restart when needed, wait for the port, then continue applying the background automatically.
+- Updated the current mode copy to clarify that after Codex fully exits or the computer restarts, users only need to click Apply to Codex again instead of remembering a manual status-check sequence.
+
 ## 0.1.1
 
 - Added Simplified Chinese / English switching in the desktop app.

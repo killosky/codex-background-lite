@@ -26,7 +26,7 @@ const dictionaries = {
     restartButton: "启动/重启 Codex",
     previewAndLog: "预览和日志",
     modeTitle: "当前模式",
-    modeDescription: "应用只修改正在运行的 Codex 渲染器。Codex 完全退出或电脑重启后，重新打开此应用再点一次“应用到 Codex”。",
+    modeDescription: "“应用到 Codex”会先检查连接；如果 Codex 未开启本地调试端口，应用会请求确认并重启 Codex。Codex 完全退出或电脑重启后，只需重新打开此应用再点一次“应用到 Codex”。",
     logTitle: "运行日志",
     copyButton: "复制",
     readingConfig: "正在读取配置...",
@@ -49,6 +49,13 @@ const dictionaries = {
     applied: "已应用",
     appliedDetail: (pageId) => `背景已注入到 target ${pageId}。`,
     applyFailed: "应用失败",
+    autoRestartConfirm: (port) => `Codex 当前没有开启本地调试端口 ${port}，需要关闭并重新启动 Codex Desktop 后才能应用背景。继续吗？`,
+    autoRestartCanceled: "已取消自动重启，背景尚未应用。",
+    autoRestarting: "正在重启 Codex",
+    autoRestartDetail: (port) => `正在用本地调试端口 ${port} 重新启动 Codex。`,
+    waitingForCodex: "等待 Codex 就绪",
+    waitingForCodexDetail: (port) => `正在等待 Codex 打开端口 ${port}。`,
+    codexStillUnavailable: (port, detail) => `Codex 已请求重启，但端口 ${port} 仍不可用。${detail}`,
     clearConfirm: "这会清除当前 Codex 窗口里的背景。继续吗？",
     clearing: "清除背景",
     cleared: "已清除",
@@ -86,7 +93,7 @@ const dictionaries = {
     restartButton: "Start / Restart Codex",
     previewAndLog: "Preview and log",
     modeTitle: "Current Mode",
-    modeDescription: "The app only modifies the running Codex renderer. If Codex fully exits or the computer restarts, reopen this app and click “Apply to Codex” again.",
+    modeDescription: "Apply to Codex checks the connection first. If Codex has not opened the local debugging port, the app will ask to restart Codex. After Codex fully exits or the computer restarts, reopen this app and click “Apply to Codex” again.",
     logTitle: "Run Log",
     copyButton: "Copy",
     readingConfig: "Reading config...",
@@ -109,6 +116,13 @@ const dictionaries = {
     applied: "Applied",
     appliedDetail: (pageId) => `Background injected into target ${pageId}.`,
     applyFailed: "Apply failed",
+    autoRestartConfirm: (port) => `Codex has not opened local debugging port ${port}. Codex Desktop must be closed and restarted before the background can be applied. Continue?`,
+    autoRestartCanceled: "Automatic restart was canceled; the background was not applied.",
+    autoRestarting: "Restarting Codex",
+    autoRestartDetail: (port) => `Restarting Codex with local debugging port ${port}.`,
+    waitingForCodex: "Waiting for Codex",
+    waitingForCodexDetail: (port) => `Waiting for Codex to open port ${port}.`,
+    codexStillUnavailable: (port, detail) => `Codex restart was requested, but port ${port} is still unavailable. ${detail}`,
     clearConfirm: "This will clear the background in the current Codex window. Continue?",
     clearing: "Clearing background",
     cleared: "Cleared",
@@ -162,6 +176,10 @@ let connectionState = {
   titleKey: "unchecked",
   detailKey: "statusCheckHint"
 };
+
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
 
 function initialLanguage() {
   const saved = localStorage.getItem("codex-background-lite-language");
@@ -352,6 +370,80 @@ async function save() {
   return data;
 }
 
+async function refreshState() {
+  const data = await api.getState();
+  applyState(data);
+  return data;
+}
+
+async function checkCodexStatus() {
+  const result = await api.status(settingsFromInputs());
+  if (result.mainPage) {
+    setConnection("ok", "connected", "connectedDetail", result.port);
+  } else {
+    setConnection("bad", "noPage", "noPageDetail", result.port);
+  }
+  await refreshState();
+  return result;
+}
+
+async function waitForCodexReady(timeoutMs = 45000) {
+  const started = Date.now();
+  let lastDetail = "";
+
+  while (Date.now() - started < timeoutMs) {
+    try {
+      const result = await api.status(settingsFromInputs());
+      if (result.mainPage) {
+        setConnection("ok", "connected", "connectedDetail", result.port);
+        await refreshState();
+        return result;
+      }
+      lastDetail = t("noPageDetail", result.port);
+    } catch (error) {
+      lastDetail = error.message || String(error);
+    }
+    await sleep(1500);
+  }
+
+  throw new Error(t("codexStillUnavailable", Number(els.cdpPort.value), lastDetail));
+}
+
+async function restartCodexAndWait() {
+  const port = Number(els.cdpPort.value);
+  if (!confirm(t("autoRestartConfirm", port))) {
+    throw new Error(t("autoRestartCanceled"));
+  }
+
+  setConnection(null, "autoRestarting", "autoRestartDetail", port);
+  writeLog(`${t("autoRestarting")}...`);
+  await api.restartCodex(settingsFromInputs());
+
+  setConnection(null, "waitingForCodex", "waitingForCodexDetail", port);
+  writeLog(`${t("waitingForCodex")}...`);
+  return waitForCodexReady();
+}
+
+async function ensureCodexReady() {
+  try {
+    const result = await checkCodexStatus();
+    if (result.mainPage) return result;
+  } catch (error) {
+    setConnectionError("bad", "connectionFailed", error.message || String(error));
+  }
+
+  return restartCodexAndWait();
+}
+
+async function applyWithWorkflow() {
+  await save();
+  await ensureCodexReady();
+  const result = await api.applyBackground(settingsFromInputs());
+  await refreshState();
+  setConnection("ok", "applied", "appliedDetail", result.pageId);
+  return result;
+}
+
 function bindRange(range, number) {
   range.addEventListener("input", () => {
     number.value = range.value;
@@ -392,16 +484,7 @@ els.saveBtn.addEventListener("click", () => {
 
 els.statusBtn.addEventListener("click", () => {
   run("checkingStatus", async () => {
-    const result = await api.status(settingsFromInputs());
-    if (result.mainPage) {
-      setConnection("ok", "connected", "connectedDetail", result.port);
-    } else {
-      setConnection("bad", "noPage", "noPageDetail", result.port);
-    }
-    current = await api.getState();
-    pendingImage = null;
-    refreshImageMeta();
-    return result;
+    return checkCodexStatus();
   }).catch((error) => {
     setConnectionError("bad", "connectionFailed", error.message || String(error));
   });
@@ -409,12 +492,7 @@ els.statusBtn.addEventListener("click", () => {
 
 els.applyBtn.addEventListener("click", () => {
   run("applying", async () => {
-    const result = await api.applyBackground(settingsFromInputs());
-    current = await api.getState();
-    pendingImage = null;
-    refreshImageMeta();
-    setConnection("ok", "applied", "appliedDetail", result.pageId);
-    return result;
+    return applyWithWorkflow();
   }).catch((error) => {
     setConnectionError("bad", "applyFailed", error.message || String(error));
   });

@@ -1,6 +1,6 @@
 {
   "name": "codex-background-lite",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "type": "module",
   "description": "通过本机 CDP 为 Codex Desktop 应用背景图的独立 Windows 工具。",
   "author": "codex-background-lite contributors",
