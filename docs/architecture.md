@@ -38,6 +38,18 @@ src/cli.js                辅助调试命令，不作为主产品入口
 
 用户需要时重新打开应用并点击 `应用到 Codex`。
 
+## 体积来源
+
+应用体积主要由 Electron 运行时决定。业务代码、主题脚本和 CDP 逻辑很小，但 Electron 需要携带 Chromium、Node.js、GPU/媒体相关 DLL、多语言资源和打包运行文件。
+
+这意味着：
+
+- 安装包约几十 MB 属于正常范围。
+- 解包后的 Windows 应用目录达到 200 MB 级别属于 Electron 的常见结果。
+- 开发目录还会额外包含 `node_modules\electron` 和 `node_modules\app-builder-bin`，因此会比最终安装目录更大。
+
+本项目接受这个体积成本，以换取第一版应用已经完成的桌面界面、安装器、文件选择、预览、IPC 和 Codex 启动流程。
+
 ## 安全边界
 
 - 应用只连接本机 CDP 端口。

@@ -10,3 +10,4 @@
 - 支持启动或重启 Windows Store/MSIX 版 Codex，并自动带上 CDP 参数。
 - 移除第一版网页控制台、开机自动恢复和 restore 流程。
 - 保留最小 CLI 作为开发调试辅助入口。
+- 文档补充 Electron 版安装包和解包目录体积说明。

@@ -34,6 +34,29 @@ dist\win-unpacked\Codex Background Lite.exe
 
 Codex 完全退出、更新、电脑重启后，背景可能消失。重新打开应用，再点击一次 `应用到 Codex` 即可。
 
+## 体积说明
+
+这个应用的功能代码很小，`src/` 目录只有几十 KB。安装包和安装后的目录之所以大，是因为桌面壳使用 Electron。
+
+Electron 应用会随程序带上一整套 Chromium 和 Node.js 运行时。Chromium 负责显示界面，Node.js 负责访问本机文件、进程和 CDP 连接。这让应用可以用 Web 技术快速做出完整桌面界面和安装包，但代价是体积明显大于原生小工具。
+
+当前构建产物的典型体积：
+
+```text
+dist\Codex Background Lite Setup 0.1.0.exe    约 75 MB
+dist\win-unpacked\                            约 258 MB
+```
+
+开发目录会更大，因为还包含依赖和构建工具：
+
+```text
+node_modules\electron\        Electron/Chromium 运行时
+node_modules\app-builder-bin\ electron-builder 打包二进制
+dist\win-unpacked\            解包后的 Windows 应用
+```
+
+因此，200 MB 级别主要来自 Electron/Chromium 运行时和打包产物，不是背景注入功能本身。选择继续使用 Electron 是为了保留第一版应用的成熟界面、安装器、跨进程能力和打包流程。
+
 ## 功能
 
 - 选择并保存背景图片。

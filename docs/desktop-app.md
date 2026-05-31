@@ -49,6 +49,28 @@ npm run dist:win
 - 免安装目录版：`dist\win-unpacked\Codex Background Lite.exe`
 - 安装包：`dist\Codex Background Lite Setup 0.1.0.exe`
 
+## 为什么应用体积较大
+
+桌面应用使用 Electron 构建。Electron 会把 Chromium 和 Node.js 一起带进应用目录：
+
+- Chromium 用来渲染桌面界面。
+- Node.js 用来访问本机文件、配置目录、进程启动和 CDP 通信。
+- electron-builder 会额外下载 Windows 打包所需的二进制工具。
+
+所以体积主要来自运行时和打包工具，而不是项目业务代码。当前项目的 `src/` 代码只有几十 KB，但解包后的 Electron 应用通常会超过 200 MB。
+
+常见体积来源：
+
+```text
+dist\win-unpacked\Codex Background Lite.exe    Electron 主程序和 Chromium 运行时
+dist\win-unpacked\*.dll                        GPU、Vulkan、DirectX、ffmpeg 等运行库
+dist\win-unpacked\locales\                     Chromium 多语言资源
+node_modules\electron\                         开发期 Electron 依赖
+node_modules\app-builder-bin\                  打包工具二进制
+```
+
+保留 Electron 版的原因是它已经具备完整桌面界面、文件选择、预览、IPC、安全桥、Windows 安装包和 Codex 启动流程。对当前第一版应用来说，这比重写原生界面更稳定。
+
 ## 下载镜像说明
 
 项目已经配置 Electron 和 electron-builder 使用镜像源下载二进制文件。原因是当前网络环境访问 GitHub 的 Electron 二进制包容易超时。
