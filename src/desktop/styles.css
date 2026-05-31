@@ -249,6 +249,28 @@ h3 {
   white-space: nowrap;
 }
 
+.topbar-actions {
+  display: flex;
+  align-items: end;
+  gap: 10px;
+}
+
+.language-control {
+  display: grid;
+  gap: 5px;
+  min-width: 118px;
+}
+
+.language-control span {
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.language-control select {
+  min-height: 34px;
+  padding: 6px 8px;
+}
+
 .ghost {
   padding: 7px 11px;
   color: var(--muted);
@@ -516,5 +538,15 @@ pre {
 
   .form-grid {
     grid-template-columns: 1fr;
+  }
+
+  .topbar {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .topbar-actions {
+    align-items: stretch;
+    flex-wrap: wrap;
   }
 }

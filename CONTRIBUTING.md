@@ -1,5 +1,7 @@
 # 贡献指南
 
+English version: [CONTRIBUTING.en.md](CONTRIBUTING.en.md)
+
 感谢你考虑参与 `codex-background-lite`。
 
 ## 项目边界

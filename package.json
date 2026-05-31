@@ -1,6 +1,6 @@
 {
   "name": "codex-background-lite",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "type": "module",
   "description": "通过本机 CDP 为 Codex Desktop 应用背景图的独立 Windows 工具。",
   "author": "codex-background-lite contributors",
@@ -41,6 +41,11 @@
     "README.en.md",
     "LICENSE",
     "SECURITY.md",
+    "SECURITY.en.md",
+    "CONTRIBUTING.md",
+    "CONTRIBUTING.en.md",
+    "CHANGELOG.md",
+    "CHANGELOG.en.md",
     "docs"
   ],
   "build": {
@@ -56,7 +61,9 @@
       "src/**/*",
       "package.json",
       "README.md",
+      "README.en.md",
       "SECURITY.md",
+      "SECURITY.en.md",
       "docs/**/*",
       "LICENSE"
     ],

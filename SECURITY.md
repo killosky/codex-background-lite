@@ -1,5 +1,7 @@
 # 安全说明
 
+English version: [SECURITY.en.md](SECURITY.en.md)
+
 ## 当前安全模型
 
 `codex-background-lite` 不修改 Codex Desktop 安装文件。应用背景时，它只连接本机 CDP 端口，并向当前 Codex Electron 渲染器注入一段可移除的 CSS。

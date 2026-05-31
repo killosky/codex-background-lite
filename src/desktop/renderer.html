@@ -12,8 +12,8 @@
     <aside class="rail">
       <div>
         <p class="eyebrow">Codex Background Lite</p>
-        <h1>Codex 背景控制器</h1>
-        <p class="summary">选择图片，调整视觉参数，然后把背景应用到当前 Codex Desktop 窗口。</p>
+        <h1 data-i18n="appTitle">Codex 背景控制器</h1>
+        <p class="summary" data-i18n="appSummary">选择图片，调整视觉参数，然后把背景应用到当前 Codex Desktop 窗口。</p>
       </div>
 
       <div class="connection" id="connectionBox">
@@ -27,15 +27,15 @@
       <div class="rail-actions">
         <button class="action primary" id="applyBtn" type="button">
           <span class="mark">A</span>
-          <span>应用到 Codex</span>
+          <span data-i18n="applyButton">应用到 Codex</span>
         </button>
         <button class="action" id="statusBtn" type="button">
           <span class="mark">S</span>
-          <span>状态检查</span>
+          <span data-i18n="statusButton">状态检查</span>
         </button>
         <button class="action danger" id="clearBtn" type="button">
           <span class="mark">C</span>
-          <span>清除背景</span>
+          <span data-i18n="clearButton">清除背景</span>
         </button>
       </div>
     </aside>
@@ -43,38 +43,47 @@
     <section class="workspace">
       <div class="topbar">
         <div>
-          <h2>设置</h2>
+          <h2 data-i18n="settingsTitle">设置</h2>
           <p id="configPath">正在读取配置...</p>
         </div>
-        <button class="ghost" id="openConfigBtn" type="button">打开配置位置</button>
+        <div class="topbar-actions">
+          <label class="language-control">
+            <span data-i18n="languageLabel">语言</span>
+            <select id="language">
+              <option value="zh-CN">简体中文</option>
+              <option value="en-US">English</option>
+            </select>
+          </label>
+          <button class="ghost" id="openConfigBtn" type="button" data-i18n="openConfigButton">打开配置位置</button>
+        </div>
       </div>
 
       <div class="layout">
-        <section class="panel settings-panel" aria-label="背景设置">
+        <section class="panel settings-panel" aria-label="背景设置" data-i18n-attr="aria-label:backgroundSettings">
           <div class="panel-head">
-            <h3>图片</h3>
+            <h3 data-i18n="imageTitle">图片</h3>
             <span id="imageMeta">未选择图片</span>
           </div>
 
           <button class="drop-zone" id="chooseImageBtn" type="button">
             <span class="drop-icon">IMG</span>
-            <strong>选择 PNG / JPEG / WebP</strong>
-            <small>图片会复制到本机配置目录，重启后可继续使用。</small>
+            <strong data-i18n="chooseImageTitle">选择 PNG / JPEG / WebP</strong>
+            <small data-i18n="chooseImageHelp">图片会复制到本机配置目录，重启后可继续使用。</small>
           </button>
 
           <div class="form-grid">
             <label>
-              <span>CDP 端口</span>
+              <span data-i18n="cdpPortLabel">CDP 端口</span>
               <input id="cdpPort" type="number" min="1" max="65535" step="1">
             </label>
             <label>
-              <span>强调色</span>
+              <span data-i18n="accentLabel">强调色</span>
               <input id="accent" type="color">
             </label>
           </div>
 
           <label>
-            <span>背景遮罩</span>
+            <span data-i18n="overlayLabel">背景遮罩</span>
             <div class="range-line">
               <input id="overlay" type="range" min="0" max="0.9" step="0.01">
               <input id="overlayValue" type="number" min="0" max="0.9" step="0.01">
@@ -82,7 +91,7 @@
           </label>
 
           <label>
-            <span>面板透明度</span>
+            <span data-i18n="panelOpacityLabel">面板透明度</span>
             <div class="range-line">
               <input id="panelOpacity" type="range" min="0.05" max="0.95" step="0.01">
               <input id="panelOpacityValue" type="number" min="0.05" max="0.95" step="0.01">
@@ -90,7 +99,7 @@
           </label>
 
           <label>
-            <span>面板模糊</span>
+            <span data-i18n="blurLabel">面板模糊</span>
             <div class="range-line">
               <input id="blur" type="range" min="0" max="32" step="1">
               <input id="blurValue" type="number" min="0" max="32" step="1">
@@ -99,7 +108,7 @@
 
           <div class="form-grid">
             <label>
-              <span>适配方式</span>
+              <span data-i18n="fitLabel">适配方式</span>
               <select id="fit">
                 <option value="cover">cover</option>
                 <option value="contain">contain</option>
@@ -107,18 +116,18 @@
               </select>
             </label>
             <label>
-              <span>图片位置</span>
+              <span data-i18n="positionLabel">图片位置</span>
               <input id="position" type="text" placeholder="center top">
             </label>
           </div>
 
           <div class="button-row">
-            <button id="saveBtn" type="button">保存设置</button>
-            <button id="restartBtn" class="warn" type="button">启动/重启 Codex</button>
+            <button id="saveBtn" type="button" data-i18n="saveButton">保存设置</button>
+            <button id="restartBtn" class="warn" type="button" data-i18n="restartButton">启动/重启 Codex</button>
           </div>
         </section>
 
-        <section class="panel preview-panel" aria-label="预览和日志">
+        <section class="panel preview-panel" aria-label="预览和日志" data-i18n-attr="aria-label:previewAndLog">
           <div class="preview" id="preview">
             <div class="mock-shell">
               <div class="mock-side">
@@ -134,14 +143,14 @@
           </div>
 
           <div class="notice">
-            <strong>当前模式</strong>
-            <span>应用只修改正在运行的 Codex 渲染器。Codex 完全退出或电脑重启后，重新打开此应用再点一次“应用到 Codex”。</span>
+            <strong data-i18n="modeTitle">当前模式</strong>
+            <span data-i18n="modeDescription">应用只修改正在运行的 Codex 渲染器。Codex 完全退出或电脑重启后，重新打开此应用再点一次“应用到 Codex”。</span>
           </div>
 
           <div class="log-wrap">
             <div class="log-head">
-              <h3>运行日志</h3>
-              <button class="ghost small" id="copyLogBtn" type="button">复制</button>
+              <h3 data-i18n="logTitle">运行日志</h3>
+              <button class="ghost small" id="copyLogBtn" type="button" data-i18n="copyButton">复制</button>
             </div>
             <pre id="log">就绪。</pre>
           </div>

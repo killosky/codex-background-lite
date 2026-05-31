@@ -1,5 +1,7 @@
 # Codex Background Lite 桌面应用说明
 
+English version: [desktop-app.en.md](desktop-app.en.md)
+
 项目现在包含一个独立的 Windows 桌面应用，使用 Electron 构建。
 
 ## 日常使用流程
@@ -22,6 +24,7 @@ Codex 完全退出、Codex 更新、电脑重启后，背景可能消失。这�
 - `保存设置`：只保存图片和参数，不修改 Codex。
 - `启动/重启 Codex`：关闭当前 Codex，并用 CDP 参数重新启动。这个操作可能中断当前对话。
 - `打开配置位置`：在文件管理器中打开配置文件所在位置。
+- 右上角语言选择：在简体中文和英文界面之间切换，选择会保存在本机浏览器存储中。
 
 ## 开发运行
 
@@ -47,7 +50,7 @@ npm run dist:win
 ## 当前构建产物
 
 - 免安装目录版：`dist\win-unpacked\Codex Background Lite.exe`
-- 安装包：`dist\Codex Background Lite Setup 0.1.0.exe`
+- 安装包：`dist\Codex Background Lite Setup 0.1.1.exe`
 
 ## 为什么应用体积较大
 

@@ -68,10 +68,11 @@ async function saveThenLoad(input = {}) {
   return payload();
 }
 
-async function applySavedBackground() {
+async function applySavedBackground(language = "zh-CN") {
   const config = await loadConfig();
   if (!config.image?.path) {
-    throw new Error("请先选择图片并保存设置。");
+    const isEnglish = String(language).toLowerCase().startsWith("en");
+    throw new Error(isEnglish ? "Choose an image and save settings first." : "请先选择图片并保存设置。");
   }
 
   return applyBackground({
@@ -107,9 +108,10 @@ ipcMain.handle("app:get-state", async () => payload());
 
 ipcMain.handle("app:save-settings", async (_event, input) => saveSettings(input));
 
-ipcMain.handle("app:choose-image", async () => {
+ipcMain.handle("app:choose-image", async (_event, language = "zh-CN") => {
+  const isEnglish = String(language).toLowerCase().startsWith("en");
   const result = await dialog.showOpenDialog({
-    title: "选择背景图片",
+    title: isEnglish ? "Choose background image" : "选择背景图片",
     properties: ["openFile"],
     filters: [
       { name: "Images", extensions: ["png", "jpg", "jpeg", "webp"] }
@@ -135,7 +137,7 @@ ipcMain.handle("app:status", async (_event, input = {}) => {
 
 ipcMain.handle("app:apply-background", async (_event, input = {}) => {
   await saveThenLoad(input.settings);
-  return applySavedBackground();
+  return applySavedBackground(input.settings?.language);
 });
 
 ipcMain.handle("app:clear-background", async (_event, input = {}) => {
@@ -170,7 +172,7 @@ ipcMain.handle("app:run-safe", async (_event, name, args) => {
         return { ok: true, data: await saveSettings(args) };
       case "apply-background":
         await saveThenLoad(args?.settings);
-        return { ok: true, data: await applySavedBackground() };
+        return { ok: true, data: await applySavedBackground(args?.settings?.language) };
       default:
         throw new Error(`未知安全操作：${name}`);
     }

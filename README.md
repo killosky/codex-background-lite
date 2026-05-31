@@ -1,5 +1,7 @@
 # codex-background-lite
 
+English documentation: [README.en.md](README.en.md)
+
 `codex-background-lite` 是一个独立的 Windows 桌面应用，用来给 Codex Desktop 应用自定义背景图。它不修改 Codex 安装文件，只通过本机 Chrome DevTools Protocol（CDP）端口向当前 Codex Electron 渲染器注入 CSS。
 
 当前项目已经移除第一版网页恢复和开机自动恢复流程，正式入口只保留桌面应用。
@@ -9,13 +11,14 @@
 - 想给 Codex Desktop 设置背景图。
 - 能接受 Codex 重启或电脑重启后背景消失。
 - 希望每次需要时打开本应用，点击一次 `应用到 Codex`。
+- 需要中文或英文界面；应用会按系统语言自动选择，也可以在界面右上角手动切换。
 
 ## 快速使用
 
 安装包：
 
 ```text
-dist\Codex Background Lite Setup 0.1.0.exe
+dist\Codex Background Lite Setup 0.1.1.exe
 ```
 
 免安装版本：
@@ -43,7 +46,7 @@ Electron 应用会随程序带上一整套 Chromium 和 Node.js 运行时。Chro
 当前构建产物的典型体积：
 
 ```text
-dist\Codex Background Lite Setup 0.1.0.exe    约 75 MB
+dist\Codex Background Lite Setup 0.1.1.exe    约 75 MB
 dist\win-unpacked\                            约 258 MB
 ```
 

@@ -1,5 +1,7 @@
 # 架构说明
 
+English version: [architecture.en.md](architecture.en.md)
+
 `codex-background-lite` 当前以 Electron 桌面应用为唯一正式入口。应用本身不修改 Codex 安装文件，只通过本机 CDP 调试端口向当前 Codex Electron 渲染器注入 CSS。
 
 ## 模块划分
